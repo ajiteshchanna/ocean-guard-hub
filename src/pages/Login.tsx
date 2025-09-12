@@ -8,9 +8,12 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { OceanBackground } from '@/components/OceanBackground';
 import { Navbar } from '@/components/Navbar';
 import { Waves, Mail, Lock, Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 export default function Login() {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [formData, setFormData] = useState({
@@ -23,19 +26,33 @@ export default function Login() {
     setError('');
     setIsLoading(true);
 
-    // Simulate authentication - Replace with actual Supabase auth
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      if (formData.email && formData.password) {
-        // Store auth state (temporary - replace with actual auth)
-        localStorage.setItem('ocean-guard-auth', 'true');
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.password,
+      });
+
+      if (error) {
+        if (error.message.includes('Invalid login credentials')) {
+          setError('Invalid email or password. Please check your credentials.');
+        } else if (error.message.includes('Email not confirmed')) {
+          setError('Please check your email and click the confirmation link.');
+        } else {
+          setError(error.message);
+        }
+        return;
+      }
+
+      if (data.user) {
+        toast({
+          title: "Welcome back!",
+          description: "You have successfully signed in.",
+        });
         navigate('/dashboard');
-      } else {
-        setError('Please fill in all fields');
       }
     } catch (err) {
-      setError('Invalid credentials. Please try again.');
+      console.error('Login error:', err);
+      setError('An unexpected error occurred. Please try again.');
     } finally {
       setIsLoading(false);
     }

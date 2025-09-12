@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { OceanBackground } from '@/components/OceanBackground';
 import { Navbar } from '@/components/Navbar';
+import Map from '@/components/Map';
 import { 
   TrendingUp, 
   AlertTriangle, 
@@ -198,45 +199,11 @@ export default function Dashboard() {
                 Interactive Hazard Map
               </CardTitle>
               <CardDescription>
-                Real-time visualization of ocean hazard reports
+                Real-time visualization of reported ocean hazards across monitored regions
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="aspect-video bg-gradient-ocean rounded-lg p-8 flex items-center justify-center relative overflow-hidden">
-                <div className="text-center text-white/80">
-                  <MapPin className="h-12 w-12 mx-auto mb-4 animate-bounce" />
-                  <p className="text-lg font-medium">Interactive Map Placeholder</p>
-                  <p className="text-sm mt-2">Map visualization with severity markers:</p>
-                  <div className="flex justify-center gap-4 mt-4">
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                      <span className="text-sm">Critical</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                      <span className="text-sm">Medium</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                      <span className="text-sm">Low</span>
-                    </div>
-                  </div>
-                </div>
-                {/* Animated elements */}
-                <div className="absolute inset-0 opacity-20">
-                  {[...Array(6)].map((_, i) => (
-                    <div
-                      key={i}
-                      className={`absolute w-4 h-4 rounded-full ${getSeverityColor(['high', 'medium', 'low'][Math.floor(Math.random() * 3)])} animate-glow-pulse`}
-                      style={{
-                        top: `${20 + Math.random() * 60}%`,
-                        left: `${10 + Math.random() * 80}%`,
-                        animationDelay: `${i * 0.5}s`
-                      }}
-                    />
-                  ))}
-                </div>
-              </div>
+              <Map className="h-96" />
             </CardContent>
           </Card>
 

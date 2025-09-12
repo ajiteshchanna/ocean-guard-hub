@@ -8,9 +8,12 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { OceanBackground } from '@/components/OceanBackground';
 import { Navbar } from '@/components/Navbar';
 import { Waves, Mail, Lock, User, Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 export default function Signup() {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [formData, setFormData] = useState({
@@ -38,19 +41,37 @@ export default function Signup() {
       return;
     }
 
-    // Simulate account creation - Replace with actual Supabase auth
     try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      if (formData.email && formData.password && formData.name) {
-        // Store auth state (temporary - replace with actual auth)
-        localStorage.setItem('ocean-guard-auth', 'true');
+      const { data, error } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/dashboard`,
+          data: {
+            full_name: formData.name,
+          },
+        },
+      });
+
+      if (error) {
+        if (error.message.includes('User already registered')) {
+          setError('An account with this email already exists. Please sign in instead.');
+        } else {
+          setError(error.message);
+        }
+        return;
+      }
+
+      if (data.user) {
+        toast({
+          title: "Account created successfully!",
+          description: "Please check your email to confirm your account.",
+        });
         navigate('/dashboard');
-      } else {
-        setError('Please fill in all fields');
       }
     } catch (err) {
-      setError('Failed to create account. Please try again.');
+      console.error('Signup error:', err);
+      setError('An unexpected error occurred. Please try again.');
     } finally {
       setIsLoading(false);
     }

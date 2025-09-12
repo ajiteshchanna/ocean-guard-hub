@@ -1,8 +1,9 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { Waves, BarChart3, FileText, User } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { Waves, BarChart3, FileText, User, Compass, LogOut } from 'lucide-react';
 
 interface NavbarProps {
   isAuthenticated?: boolean;
@@ -10,6 +11,15 @@ interface NavbarProps {
 
 export function Navbar({ isAuthenticated = false }: NavbarProps) {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, signOut } = useAuth();
+  
+  const actualIsAuthenticated = isAuthenticated || !!user;
+  
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/');
+  };
 
   const navItems = [
     { path: '/dashboard', label: 'Dashboard', icon: BarChart3 },
@@ -31,7 +41,7 @@ export function Navbar({ isAuthenticated = false }: NavbarProps) {
         </Link>
 
         {/* Navigation Items (only show if authenticated) */}
-        {isAuthenticated && (
+        {actualIsAuthenticated && (
           <div className="hidden md:flex items-center space-x-1">
             {navItems.map((item) => {
               const Icon = item.icon;
@@ -56,7 +66,7 @@ export function Navbar({ isAuthenticated = false }: NavbarProps) {
         {/* Right side actions */}
         <div className="flex items-center space-x-2">
           <ThemeToggle />
-          {!isAuthenticated && (
+          {!actualIsAuthenticated ? (
             <div className="flex items-center space-x-2">
               <Link to="/login">
                 <Button variant="outline" size="sm">
@@ -69,6 +79,11 @@ export function Navbar({ isAuthenticated = false }: NavbarProps) {
                 </Button>
               </Link>
             </div>
+          ) : (
+            <Button variant="ghost" size="sm" onClick={handleSignOut} className="gap-2">
+              <LogOut className="h-4 w-4" />
+              Sign Out
+            </Button>
           )}
         </div>
       </div>
