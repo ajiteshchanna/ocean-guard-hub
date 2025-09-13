@@ -24,6 +24,9 @@ import {
   Droplets
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useReports } from '@/hooks/useReports';
+import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 interface HazardForm {
   // Hazard Details
@@ -48,6 +51,9 @@ interface HazardForm {
 
 export default function ReportNew() {
   const { toast } = useToast();
+  const { createReport } = useReports();
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState('');
@@ -87,39 +93,69 @@ export default function ReportNew() {
     setError('');
     setIsLoading(true);
 
+    if (!user) {
+      setError('Please log in to submit a report');
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      if (formData.hazardType && formData.severity && formData.title && formData.description) {
-        setIsSuccess(true);
-        toast({
-          title: "Report submitted successfully!",
-          description: "Thank you for helping protect our oceans. Your report is being reviewed.",
-        });
-        
-        // Reset form
-        setFormData({
-          hazardType: '',
-          severity: '',
-          title: '',
-          description: '',
-          immediateActions: '',
-          location: '',
-          latitude: '',
-          longitude: '',
-          reporterName: '',
-          contactNumber: '',
-          photos: null,
-        });
-        
-        if (fileInputRef.current) {
-          fileInputRef.current.value = '';
-        }
-      } else {
+      // Validate required fields
+      if (!formData.hazardType || !formData.severity || !formData.title || !formData.description) {
         setError('Please fill in all required fields');
+        setIsLoading(false);
+        return;
       }
+
+      // Create report data
+      const reportData = {
+        hazard_type: formData.hazardType,
+        severity: formData.severity as 'Critical' | 'High' | 'Medium' | 'Low',
+        title: formData.title,
+        description: formData.description,
+        immediate_actions: formData.immediateActions || null,
+        location_description: formData.location || null,
+        latitude: formData.latitude ? parseFloat(formData.latitude) : null,
+        longitude: formData.longitude ? parseFloat(formData.longitude) : null,
+        reporter_name: formData.reporterName || null,
+        contact_number: formData.contactNumber || null,
+      };
+
+      await createReport(reportData);
+      
+      setIsSuccess(true);
+      toast({
+        title: "Report submitted successfully!",
+        description: "Thank you for helping protect our oceans. Your report is now visible on the monitoring map.",
+      });
+      
+      // Reset form
+      setFormData({
+        hazardType: '',
+        severity: '',
+        title: '',
+        description: '',
+        immediateActions: '',
+        location: '',
+        latitude: '',
+        longitude: '',
+        reporterName: '',
+        contactNumber: '',
+        photos: null,
+      });
+      
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+
+      // Navigate to dashboard after 2 seconds to see the report on map
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 2000);
+
     } catch (err) {
-      setError('Failed to submit report. Please try again.');
+      console.error('Error submitting report:', err);
+      setError(err instanceof Error ? err.message : 'Failed to submit report. Please try again.');
     } finally {
       setIsLoading(false);
     }

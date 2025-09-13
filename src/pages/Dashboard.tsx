@@ -15,11 +15,16 @@ import {
   ArrowUp,
   ArrowRight,
   ArrowDown,
-  Waves
+  Waves,
+  FileText,
+  Users
 } from 'lucide-react';
+import { useReports } from '@/hooks/useReports';
+import { getTrendIcon, getSeverityColor } from '@/lib/utils';
 
 export default function Dashboard() {
   const [timeFilter, setTimeFilter] = useState('24h');
+  const { reports, loading } = useReports();
 
   const stats = [
     {
