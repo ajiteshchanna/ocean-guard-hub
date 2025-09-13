@@ -28,27 +28,55 @@ export default function Signup() {
     setError('');
     setIsLoading(true);
 
-    // Basic validation
+    // Comprehensive validation
+    if (!formData.name.trim() || !formData.email || !formData.password || !formData.confirmPassword) {
+      setError('Please fill in all fields.');
+      setIsLoading(false);
+      return;
+    }
+
+    if (formData.name.trim().length < 2) {
+      setError('Name must be at least 2 characters long.');
+      setIsLoading(false);
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setError('Please enter a valid email address.');
+      setIsLoading(false);
+      return;
+    }
+
     if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
+      setError('Passwords do not match.');
       setIsLoading(false);
       return;
     }
 
     if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters');
+      setError('Password must be at least 6 characters long.');
+      setIsLoading(false);
+      return;
+    }
+
+    // Password strength validation
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/;
+    if (!passwordRegex.test(formData.password)) {
+      setError('Password must contain at least one uppercase letter, one lowercase letter, and one number.');
       setIsLoading(false);
       return;
     }
 
     try {
       const { data, error } = await supabase.auth.signUp({
-        email: formData.email,
+        email: formData.email.trim().toLowerCase(),
         password: formData.password,
         options: {
           emailRedirectTo: `${window.location.origin}/dashboard`,
           data: {
-            full_name: formData.name,
+            full_name: formData.name.trim(),
+            display_name: formData.name.trim(),
           },
         },
       });
@@ -56,6 +84,10 @@ export default function Signup() {
       if (error) {
         if (error.message.includes('User already registered')) {
           setError('An account with this email already exists. Please sign in instead.');
+        } else if (error.message.includes('Password should be')) {
+          setError('Password does not meet security requirements. Please choose a stronger password.');
+        } else if (error.message.includes('Invalid email')) {
+          setError('Please enter a valid email address.');
         } else {
           setError(error.message);
         }
@@ -63,11 +95,20 @@ export default function Signup() {
       }
 
       if (data.user) {
-        toast({
-          title: "Account created successfully!",
-          description: "Please check your email to confirm your account.",
-        });
-        navigate('/dashboard');
+        // Check if email confirmation is required
+        if (data.user.email_confirmed_at) {
+          toast({
+            title: "Welcome to Ocean Guard!",
+            description: "Your account has been created and you're now signed in.",
+          });
+          navigate('/dashboard');
+        } else {
+          toast({
+            title: "Account created successfully!",
+            description: "Please check your email and click the confirmation link to complete your registration.",
+          });
+          // Stay on signup page to show the message
+        }
       }
     } catch (err) {
       console.error('Signup error:', err);

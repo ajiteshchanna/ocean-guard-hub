@@ -26,9 +26,23 @@ export default function Login() {
     setError('');
     setIsLoading(true);
 
+    // Basic validation
+    if (!formData.email || !formData.password) {
+      setError('Please fill in all fields.');
+      setIsLoading(false);
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setError('Please enter a valid email address.');
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
-        email: formData.email,
+        email: formData.email.trim(),
         password: formData.password,
       });
 
@@ -37,6 +51,8 @@ export default function Login() {
           setError('Invalid email or password. Please check your credentials.');
         } else if (error.message.includes('Email not confirmed')) {
           setError('Please check your email and click the confirmation link.');
+        } else if (error.message.includes('Too many requests')) {
+          setError('Too many login attempts. Please wait a moment before trying again.');
         } else {
           setError(error.message);
         }
