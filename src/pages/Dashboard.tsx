@@ -20,7 +20,7 @@ import {
   Users
 } from 'lucide-react';
 import { useReports } from '@/hooks/useReports';
-import { getTrendIcon, getSeverityColor } from '@/lib/utils';
+
 
 export default function Dashboard() {
   const [timeFilter, setTimeFilter] = useState('24h');
@@ -88,33 +88,6 @@ export default function Dashboard() {
     }
   ];
 
-  const getTrendIcon = (trend: string) => {
-    switch (trend) {
-      case 'up':
-      case 'increasing':
-        return <ArrowUp className="h-4 w-4 text-green-500" />;
-      case 'down':
-      case 'decreasing':
-        return <ArrowDown className="h-4 w-4 text-red-500" />;
-      case 'stable':
-        return <ArrowRight className="h-4 w-4 text-yellow-500" />;
-      default:
-        return <AlertTriangle className="h-4 w-4 text-orange-500" />;
-    }
-  };
-
-  const getSeverityColor = (severity: string) => {
-    switch (severity) {
-      case 'high':
-        return 'bg-red-500';
-      case 'medium':
-        return 'bg-yellow-500';
-      case 'low':
-        return 'bg-green-500';
-      default:
-        return 'bg-gray-500';
-    }
-  };
 
   const exportData = () => {
     const data = {
@@ -181,7 +154,15 @@ export default function Dashboard() {
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between mb-4">
                     <Icon className="h-8 w-8 text-primary" />
-                    {getTrendIcon(stat.trend)}
+                    {stat.trend === 'up' || stat.trend === 'increasing' ? (
+                      <ArrowUp className="h-4 w-4 text-green-500" />
+                    ) : stat.trend === 'down' || stat.trend === 'decreasing' ? (
+                      <ArrowDown className="h-4 w-4 text-red-500" />
+                    ) : stat.trend === 'stable' ? (
+                      <ArrowRight className="h-4 w-4 text-yellow-500" />
+                    ) : (
+                      <AlertTriangle className="h-4 w-4 text-orange-500" />
+                    )}
                   </div>
                   <div className="space-y-1">
                     <p className="text-sm text-muted-foreground">{stat.title}</p>
@@ -228,7 +209,11 @@ export default function Dashboard() {
                 {alertHotspots.map((hotspot, index) => (
                   <div key={index} className="flex items-center justify-between p-4 bg-background/50 rounded-lg border border-primary/10 hover:border-primary/30 transition-colors">
                     <div className="flex items-center gap-3">
-                      <div className={`w-3 h-3 rounded-full ${getSeverityColor(hotspot.severity)}`}></div>
+                      <div className={`w-3 h-3 rounded-full ${
+                        hotspot.severity === 'high' ? 'bg-red-500' :
+                        hotspot.severity === 'medium' ? 'bg-yellow-500' :
+                        hotspot.severity === 'low' ? 'bg-green-500' : 'bg-gray-500'
+                      }`}></div>
                       <div>
                         <p className="font-medium text-foreground">{hotspot.location}</p>
                         <p className="text-sm text-muted-foreground">
@@ -237,7 +222,13 @@ export default function Dashboard() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      {getTrendIcon(hotspot.trend)}
+                      {hotspot.trend === 'increasing' ? (
+                        <ArrowUp className="h-4 w-4 text-green-500" />
+                      ) : hotspot.trend === 'decreasing' ? (
+                        <ArrowDown className="h-4 w-4 text-red-500" />
+                      ) : (
+                        <ArrowRight className="h-4 w-4 text-yellow-500" />
+                      )}
                       <span className="text-sm text-muted-foreground capitalize">
                         {hotspot.trend}
                       </span>
