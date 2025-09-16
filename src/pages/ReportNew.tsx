@@ -44,6 +44,7 @@ interface HazardForm {
   // Contact Information
   reporterName: string;
   contactNumber: string;
+  reporterEmail: string;
   
   // Media Evidence
   photos: FileList | null;
@@ -72,6 +73,7 @@ export default function ReportNew() {
     longitude: '',
     reporterName: '',
     contactNumber: '',
+    reporterEmail: '',
     photos: null,
   });
 
@@ -107,6 +109,38 @@ export default function ReportNew() {
         return;
       }
 
+      // Validate email if provided
+      if (formData.reporterEmail && !/\S+@\S+\.\S+/.test(formData.reporterEmail)) {
+        setError('Please enter a valid email address');
+        setIsLoading(false);
+        return;
+      }
+
+      // Validate files if provided
+      const files: File[] = [];
+      if (formData.photos) {
+        for (let i = 0; i < formData.photos.length; i++) {
+          const file = formData.photos[i];
+          
+          // Check file type
+          const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'video/mp4'];
+          if (!allowedTypes.includes(file.type)) {
+            setError(`File "${file.name}" has an unsupported format. Only PNG, JPG, JPEG, and MP4 files are allowed.`);
+            setIsLoading(false);
+            return;
+          }
+          
+          // Check file size (10MB limit)
+          if (file.size > 10 * 1024 * 1024) {
+            setError(`File "${file.name}" is too large. Maximum size is 10MB.`);
+            setIsLoading(false);
+            return;
+          }
+          
+          files.push(file);
+        }
+      }
+
       // Create report data
       const reportData = {
         hazard_type: formData.hazardType,
@@ -119,9 +153,10 @@ export default function ReportNew() {
         longitude: formData.longitude ? parseFloat(formData.longitude) : null,
         reporter_name: formData.reporterName || null,
         contact_number: formData.contactNumber || null,
+        reporter_email: formData.reporterEmail || null,
       };
 
-      await createReport(reportData);
+      await createReport(reportData, files.length > 0 ? files : undefined);
       
       setIsSuccess(true);
       toast({
@@ -141,6 +176,7 @@ export default function ReportNew() {
         longitude: '',
         reporterName: '',
         contactNumber: '',
+        reporterEmail: '',
         photos: null,
       });
       
@@ -508,11 +544,30 @@ export default function ReportNew() {
                   Drag and drop files here, or click to select
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  Supports: JPG, PNG, MP4, MOV • Max 10MB per file
+                  Supports: JPG, PNG, JPEG, MP4 • Max 10MB per file
                 </p>
                 {formData.photos && formData.photos.length > 0 && (
-                  <div className="mt-4 text-sm text-primary">
-                    {formData.photos.length} file(s) selected
+                  <div className="mt-4">
+                    <div className="text-sm text-primary font-medium mb-2">
+                      {formData.photos.length} file(s) selected:
+                    </div>
+                    <div className="space-y-1">
+                      {Array.from(formData.photos).map((file, index) => (
+                        <div key={index} className="flex items-center justify-between text-xs bg-primary/10 rounded p-2">
+                          <div className="flex items-center gap-2">
+                            <Camera className="h-3 w-3 text-primary" />
+                            <span className="truncate max-w-40">{file.name}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-muted-foreground">
+                            <span>{(file.size / (1024 * 1024)).toFixed(1)}MB</span>
+                            <div className={`w-2 h-2 rounded-full ${
+                              file.size > 10 * 1024 * 1024 ? 'bg-red-500' : 
+                              ['image/png', 'image/jpeg', 'image/jpg', 'video/mp4'].includes(file.type) ? 'bg-green-500' : 'bg-red-500'
+                            }`}></div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
@@ -546,18 +601,32 @@ export default function ReportNew() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="contactNumber" className="text-foreground font-medium">
-                    Contact Number
+                  <Label htmlFor="reporterEmail" className="text-foreground font-medium">
+                    Email Address
                   </Label>
                   <Input
-                    id="contactNumber"
-                    name="contactNumber"
-                    placeholder="Phone number (optional)"
-                    value={formData.contactNumber}
+                    id="reporterEmail"
+                    name="reporterEmail"
+                    type="email"
+                    placeholder="your.email@example.com (optional)"
+                    value={formData.reporterEmail}
                     onChange={handleChange}
                     className="bg-background/60 border-primary/20 focus:border-primary"
                   />
                 </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="contactNumber" className="text-foreground font-medium">
+                  Contact Number
+                </Label>
+                <Input
+                  id="contactNumber"
+                  name="contactNumber"
+                  placeholder="Phone number (optional)"
+                  value={formData.contactNumber}
+                  onChange={handleChange}
+                  className="bg-background/60 border-primary/20 focus:border-primary"
+                />
               </div>
             </CardContent>
           </Card>
