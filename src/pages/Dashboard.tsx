@@ -93,18 +93,17 @@ export default function Dashboard() {
   ];
 
   // Generate alert hotspots from actual data
-  const getAlertHotspots = () => {
-    if (!filteredReports || filteredReports.length === 0) {
-      return [
-        {
-          location: "No data available",
-          alerts: 0,
-          trend: "stable",
-          severity: "low",
-          isEmpty: true
-        }
-      ];
-    }
+  // Generate alert hotspots from actual data
+const getAlertHotspots = () => {
+  // Temporary hardcoded demo data
+  return [
+    { location: "Chennai Coast", alerts: 5, trend: "increasing", severity: "high" },
+    { location: "Mumbai Port", alerts: 3, trend: "stable", severity: "medium" },
+    { location: "Vizag Harbor", alerts: 2, trend: "decreasing", severity: "low" },
+    { location: "Kochi Bay", alerts: 1, trend: "stable", severity: "low" }
+  ];
+};
+
 
     const locationCounts: Record<string, { count: number; severities: string[] }> = {};
     filteredReports.forEach(report => {
