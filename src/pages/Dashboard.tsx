@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { OceanBackground } from '@/components/OceanBackground';
 import { Navbar } from '@/components/Navbar';
-import Map from '@/components/Map';
+import Map from '@/components/LeafletMap';
 import { 
   TrendingUp, 
   AlertTriangle, 
