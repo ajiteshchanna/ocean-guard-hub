@@ -241,7 +241,7 @@ const getAlertHotspots = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Map className="h-96" />
+              <LeafletMap className="h-96" />
             </CardContent>
           </Card>
 
